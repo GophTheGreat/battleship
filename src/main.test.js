@@ -24,18 +24,49 @@ test('Create a gameboard', () => {
   const width = 7;
   const gameboard = Gameboard(length, width);
 
+  const testGrid = [];
+
+  for (let i = 0; i < length; i += 1) {
+    const row = [];
+    for (let j = 0; j < width; j += 1) {
+      row.push(null);
+    }
+    testGrid.push(row);
+  }
+
   expect(gameboard.length).toBe(length);
   expect(gameboard.width).toBe(width);
+  expect(gameboard.grid).toEqual(testGrid);
 });
 
-test('Placing a ship on the gameboard', () => {
-  const length = 8;
-  const width = 7;
-  const shiplength = 3;
+test('Placing a ship vertically on the gameboard', () => {
+  const length = 3;
+  const width = 3;
+  const shipLength = 3;
   const shipOrientation = 'vertical';
+  const position = [0, 0];
   const gameboard = Gameboard(length, width);
 
-  gameboard.placeShip()
+  const ship = Ship(shipLength);
+
+  gameboard.placeShip(ship, position, shipOrientation);
+
+  expect(gameboard.grid).toEqual([[1, 1, 1], [null, null, null], [null, null, null]]);
+});
+
+test('Placing a ship horizontally on the gameboard', () => {
+  const length = 3;
+  const width = 3;
+  const shipLength = 3;
+  const shipOrientation = 'horizontal';
+  const position = [0, 0];
+  const gameboard = Gameboard(length, width);
+
+  const ship = Ship(shipLength);
+
+  gameboard.placeShip(ship, position, shipOrientation);
+
+  expect(gameboard.grid).toEqual([[1, null, null], [1, null, null], [1, null, null]]);
 });
 
 test('Placing an invalid ship on the gameboard', () => {
@@ -46,5 +77,7 @@ test('Placing an invalid ship on the gameboard', () => {
   const position = [-1, -1];
   const gameboard = Gameboard(length, width);
 
-  expect(gameboard.placeShip(shipLength, shipOrientation, position)).toBe('Invalid location');
+  const ship = Ship(shipLength);
+
+  expect(gameboard.placeShip(ship, position, shipOrientation)).toBe('Invalid position');
 });
