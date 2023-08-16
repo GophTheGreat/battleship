@@ -111,4 +111,22 @@ test('Receiving attacks on the gameboard', () => {
   expect(gameboard.receiveAttack(attackInvalid2)).toBe('Invalid position');
 
   expect(gameboard.grid).toEqual([['hit', 0, 'hit'], [null, 'miss', null], [null, null, null]]);
+  expect(gameboard.ships[0].hits).toBe(2);
+});
+
+test('Sinking the last ship', () => {
+  const length = 3;
+  const width = 3;
+  const shipLength = 2;
+  const shipOrientation = 'vertical';
+  const position = [0, 0];
+  const attack1 = [0, 0];
+  const attack2 = [0, 1];
+  const gameboard = Gameboard(length, width);
+  const ship = Ship(shipLength);
+
+  gameboard.placeShip(ship, position, shipOrientation);
+
+  expect(gameboard.receiveAttack(attack1)).toBe('Hit on 0!');
+  expect(gameboard.receiveAttack(attack2)).toBe('Hit on 0! All ships sunk!');
 });

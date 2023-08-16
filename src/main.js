@@ -49,7 +49,7 @@ function Gameboard(length, width) {
         this.shipIDs.push(this.shipIDs[last] + 1);
         id = this.shipIDs[last];
       } else {
-        this.shipIDs.push(1);
+        this.shipIDs.push(0);
         id = 0;
       }
 
@@ -97,12 +97,25 @@ function Gameboard(length, width) {
         }
         // Else we have a ship and its ID is the mark
         this.ships[loc].hit();
+        // Check after a hit if all ships have been sunk
+        if (this.checkAllDead() === true) {
+          this.grid[column][row] = 'hit';
+          return `Hit on ${this.shipIDs[loc]}! All ships sunk!`;
+        }
         this.grid[column][row] = 'hit';
-        return `Hit on ${this.ships[loc]}!`;
+        return `Hit on ${this.shipIDs[loc]}!`;
       }
       // Else paint a miss
       this.grid[column][row] = 'miss';
       return 'Miss';
+    },
+
+    checkAllDead() {
+      let allDead = false;
+      this.ships.forEach((e) => {
+        if (e.isSunk()) { allDead = true; }
+      });
+      return allDead;
     },
   };
 
