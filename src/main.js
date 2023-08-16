@@ -20,6 +20,7 @@ function Gameboard(length, width) {
     ships: [],
 
     initGrid() {
+      // We push nulls into each grid space to mark them empty
       for (let i = 0; i < this.length; i += 1) {
         const row = [];
         for (let j = 0; j < this.width; j += 1) {
@@ -30,6 +31,8 @@ function Gameboard(length, width) {
     },
 
     placeShip(ship, position, orientation) {
+      const column = position[0];
+      const row = position[1];
       // Check validity of position
       if (this.checkValidity(position) === 'Invalid position') {
         return 'Invalid position';
@@ -47,31 +50,59 @@ function Gameboard(length, width) {
         id = this.shipIDs[last];
       } else {
         this.shipIDs.push(1);
-        id = 1;
+        id = 0;
       }
 
       // Place the ship (vertical)
       if (orientation === 'vertical') {
         for (let i = 0; i < ship.length; i += 1) {
-          this.grid[position[0]][position[1] + i] = id;
+          this.grid[column][row + i] = id;
         }
       // Place the ship (horizontal)
       } else {
         for (let i = 0; i < ship.length; i += 1) {
-          this.grid[position[0] + i][position[1]] = id;
+          this.grid[column + i][row] = id;
         }
       }
       return '';
     },
 
     checkValidity(position) {
-      if (position[0] < 0 || position[1] < 0) {
+      const column = position[0];
+      const row = position[1];
+      if (typeof column !== 'number' || typeof row !== 'number') {
         return 'Invalid position';
       }
-      if (position[0] > this.length || position[1] > this.width) {
+      if (column < 0 || row < 0) {
+        return 'Invalid position';
+      }
+      if (column > this.length || row > this.width) {
         return 'Invalid position';
       }
       return '';
+    },
+
+    receiveAttack(position) {
+      if (this.checkValidity(position) === 'Invalid position') {
+        return 'Invalid position';
+      }
+      const column = position[0];
+      const row = position[1];
+      const loc = this.grid[column][row];
+      // Filter through unmarked grids, marked grids, and ships
+      if (loc !== null) {
+        if (loc === 'miss' || loc === 'hit') {
+          // Invalid attack. Have them redo the attack
+          return 'Invalid attack';
+        }
+        // Else we have a ship and its ID is the mark
+        this.ships[loc].hit();
+        this.grid[column][row] = 'hit';
+        return `Hit on ${this.ships[loc]}!`;
+      }
+      // Else paint a miss
+      this.grid[column][row] = 'miss';
+      return 'Miss';
     },
   };
 

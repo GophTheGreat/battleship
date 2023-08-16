@@ -51,7 +51,7 @@ test('Placing a ship vertically on the gameboard', () => {
 
   gameboard.placeShip(ship, position, shipOrientation);
 
-  expect(gameboard.grid).toEqual([[1, 1, 1], [null, null, null], [null, null, null]]);
+  expect(gameboard.grid).toEqual([[0, 0, 0], [null, null, null], [null, null, null]]);
 });
 
 test('Placing a ship horizontally on the gameboard', () => {
@@ -66,18 +66,49 @@ test('Placing a ship horizontally on the gameboard', () => {
 
   gameboard.placeShip(ship, position, shipOrientation);
 
-  expect(gameboard.grid).toEqual([[1, null, null], [1, null, null], [1, null, null]]);
+  expect(gameboard.grid).toEqual([[0, null, null], [0, null, null], [0, null, null]]);
 });
 
-test('Placing an invalid ship on the gameboard', () => {
-  const length = 8;
-  const width = 7;
+test('Placing invalid ships on the gameboard', () => {
+  const length = 3;
+  const width = 3;
   const shipLength = 3;
   const shipOrientation = 'vertical';
-  const position = [-1, -1];
+  const position1 = [-1, -1];
+  const position2 = [5, 2];
+  const position3 = [1, -1];
+  const position4 = [2, 'j'];
   const gameboard = Gameboard(length, width);
 
   const ship = Ship(shipLength);
 
-  expect(gameboard.placeShip(ship, position, shipOrientation)).toBe('Invalid position');
+  expect(gameboard.placeShip(ship, position1, shipOrientation)).toBe('Invalid position');
+  expect(gameboard.placeShip(ship, position2, shipOrientation)).toBe('Invalid position');
+  expect(gameboard.placeShip(ship, position3, shipOrientation)).toBe('Invalid position');
+  expect(gameboard.placeShip(ship, position4, shipOrientation)).toBe('Invalid position');
+});
+
+test('Receiving attacks on the gameboard', () => {
+  const length = 3;
+  const width = 3;
+  const shipLength = 3;
+  const shipOrientation = 'vertical';
+  const position = [0, 0];
+  const attack1 = [0, 0];
+  const attack2 = [1, 1];
+  const attack3 = [0, 2];
+  const attackInvalid1 = [0, 2];
+  const attackInvalid2 = [-1, 2];
+  const gameboard = Gameboard(length, width);
+  const ship = Ship(shipLength);
+
+  gameboard.placeShip(ship, position, shipOrientation);
+
+  gameboard.receiveAttack(attack1);
+  gameboard.receiveAttack(attack2);
+  gameboard.receiveAttack(attack3);
+  expect(gameboard.receiveAttack(attackInvalid1)).toBe('Invalid attack');
+  expect(gameboard.receiveAttack(attackInvalid2)).toBe('Invalid position');
+
+  expect(gameboard.grid).toEqual([['hit', 0, 'hit'], [null, 'miss', null], [null, null, null]]);
 });
