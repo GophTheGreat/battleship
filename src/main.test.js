@@ -1,4 +1,6 @@
-const { Ship, Gameboard } = require('./main');
+import Ship from './modules/ship';
+import Gameboard from './modules/gameboard';
+import Player from './modules/player';
 
 test('Make a ship and check that it was created properly', () => {
   const shipLength = 10;
@@ -129,4 +131,24 @@ test('Sinking the last ship', () => {
 
   expect(gameboard.receiveAttack(attack1)).toBe('Hit on 0!');
   expect(gameboard.receiveAttack(attack2)).toBe('Hit on 0! All ships sunk!');
+});
+
+test('Creating a player (who owns a gameboard)', () => {
+  const length = 3;
+  const width = 3;
+  const player = Player(length, width);
+
+  expect(player.gameboard.length).toBe(3);
+});
+
+test('Testing turn switching', () => {
+  const length = 3;
+  const width = 3;
+  const player1 = Player(length, width);
+  const player2 = Player(length, width);
+
+  expect(player1.isTurn).toBe(false);
+  expect(player2.isTurn).toBe(false);
+  player1.isTurn = true;
+  expect(player1.isTurn).toBe(true);
 });
