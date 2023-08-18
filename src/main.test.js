@@ -144,8 +144,8 @@ test('Creating a player (who owns a gameboard)', () => {
 test('Testing turn switching', () => {
   const length = 3;
   const width = 3;
-  const player1 = Player(length, width);
-  const player2 = Player(length, width);
+  const player1 = Player(length, width, 'human');
+  const player2 = Player(length, width, 'computer');
 
   expect(player1.isTurn).toBe(false);
   expect(player2.isTurn).toBe(false);
