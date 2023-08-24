@@ -18,8 +18,8 @@ export default function Gameboard(length, width) {
     },
 
     placeShip(ship, position, orientation) {
-      const column = position[0];
-      const row = position[1];
+      const row = position[0];
+      const column = position[1];
       // Check validity of position
       if (this.checkValidity(position) === 'Invalid position') {
         return 'Invalid position';
@@ -34,21 +34,21 @@ export default function Gameboard(length, width) {
       if (this.shipIDs.length !== 0) {
         const last = this.shipIDs.length - 1;
         this.shipIDs.push(this.shipIDs[last] + 1);
-        id = this.shipIDs[last];
+        id = this.shipIDs[this.shipIDs.length - 1];
       } else {
         this.shipIDs.push(0);
         id = 0;
       }
 
-      // Place the ship (vertical)
-      if (orientation === 'vertical') {
-        for (let i = 0; i < ship.length; i += 1) {
-          this.grid[column][row + i] = id;
-        }
       // Place the ship (horizontal)
+      if (orientation === 'horizontal') {
+        for (let i = 0; i < ship.length; i += 1) {
+          this.grid[row][column + i] = id;
+        }
+      // Place the ship (vertical)
       } else {
         for (let i = 0; i < ship.length; i += 1) {
-          this.grid[column + i][row] = id;
+          this.grid[row + i][column] = id;
         }
       }
       return '';

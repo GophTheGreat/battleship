@@ -37,15 +37,48 @@ function makeGrid(gridHTML, logicalGrid) {
   return visualGrid;
 }
 
+// Updates the visuals like when ships are placed, hit, or sunk
+function updateVisualGrid(visualGrid, logicalGrid) {
+  console.log('updating visuals');
+  console.log(`Current grid is ${logicalGrid.grid}`);
+  for (let i = 0; i < logicalGrid.length; i += 1) {
+    for (let j = 0; j < logicalGrid.width; j += 1) {
+      console.log(visualGrid[i][j]);
+      visualGrid[i][j].innerHTML = logicalGrid.grid[i][j];
+    }
+  }
+}
+
+// Set up a new game
+// Create the gameboard
+// Prompt player for 5 ships
+// Place 5 ships for the opponent
+// Start the game loop
 export default function init() {
-  let playerHum = Player(5, 5, 'human');
+  let playerHum = Player(8, 8, 'human');
   const humGrid = playerHum.gameboard;
   playerHum.isTurn = true;
-  let playerCPU = Player(3, 3, 'cpu');
+  let playerCPU = Player(8, 8, 'cpu');
   const cpuGrid = playerCPU.gameboard;
 
   const humGridVisual = makeGrid(humGridHTML, humGrid);
   const cpuGridVisual = makeGrid(cpuGridHTML, cpuGrid);
 
-  
+  // Prompt the player for to make a ship
+  // Enter the "Placing a ship" state
+  // Let's just place 5 ships pre-determined
+  humGrid.placeShip(Ship(5), [0, 0], 'vertical');
+  humGrid.placeShip(Ship(4), [2, 2], 'vertical');
+  humGrid.placeShip(Ship(3), [2, 3], 'horizontal');
+  humGrid.placeShip(Ship(3), [3, 3], 'horizontal');
+  humGrid.placeShip(Ship(2), [6, 6], 'horizontal');
+
+  cpuGrid.placeShip(Ship(5), [0, 0], 'vertical');
+  cpuGrid.placeShip(Ship(4), [0, 1], 'vertical');
+  cpuGrid.placeShip(Ship(3), [3, 3], 'horizontal');
+  cpuGrid.placeShip(Ship(3), [2, 3], 'horizontal');
+  cpuGrid.placeShip(Ship(2), [6, 6], 'horizontal');
+
+  updateVisualGrid(humGridVisual, humGrid);
+  updateVisualGrid(cpuGridVisual, cpuGrid);
 }
