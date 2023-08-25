@@ -21,7 +21,8 @@ function makeGrid(gridHTML, logicalGrid) {
       visualGrid[i][j] = document.createElement('div');
       const cell = visualGrid[i][j];
       cell.style.border = '2px solid darkgrey';
-      cell.class = 'cell';
+      cell.className = 'cell';
+      cell.setAttribute('data-position', `[${i}, ${j}]`);
       gridHTML.appendChild(cell);
       // set up the cells to listen for input
       // cell.addEventListener('click', setPos);
