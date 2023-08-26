@@ -6,6 +6,15 @@ import Player from './player';
 const humGridHTML = document.getElementById('grid1');
 const cpuGridHTML = document.getElementById('grid2');
 
+const gamestate = null;
+const gamestates = ['pregame', 'playerPlaceShip', 'cpuPlaceShip', 'playerTurn', 'cpuTurn', 'playerVictory', 'cpuVictory'];
+
+export function handleInput(e) {
+  const cell = e.target;
+  // depending on the game's state
+  // do stuff with the input
+}
+
 function makeGrid(gridHTML, logicalGrid) {
   const visualGrid = [];
 
@@ -23,6 +32,13 @@ function makeGrid(gridHTML, logicalGrid) {
       cell.style.border = '2px solid darkgrey';
       cell.className = 'cell';
       cell.setAttribute('data-position', `[${i}, ${j}]`);
+      cell.addEventListener('click', handleInput);
+      cell.addEventListener('mouseover', (event) => {
+        event.target.style.backgroundColor = 'red';
+      });
+      cell.addEventListener('mouseout', (event) => {
+        event.target.style.backgroundColor = 'white';
+      });
       gridHTML.appendChild(cell);
       // set up the cells to listen for input
       // cell.addEventListener('click', setPos);
@@ -83,3 +99,4 @@ export default function init() {
   updateVisualGrid(humGridVisual, humGrid);
   updateVisualGrid(cpuGridVisual, cpuGrid);
 }
+
