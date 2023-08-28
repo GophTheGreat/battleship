@@ -3,16 +3,43 @@ import Gameboard from './gameboard';
 import Ship from './ship';
 import Player from './player';
 
+let humGrid;
+let cpuGrid;
+
+let humGridVisual;
+let cpuGridVisual;
+
 const humGridHTML = document.getElementById('grid1');
 const cpuGridHTML = document.getElementById('grid2');
 
-const gamestate = null;
+
+let gamestate = null;
 const gamestates = ['pregame', 'playerPlaceShip', 'cpuPlaceShip', 'playerTurn', 'cpuTurn', 'playerVictory', 'cpuVictory'];
+
+// Updates the visuals like when ships are placed, hit, or sunk
+function updateVisualGrid(visualGrid, logicalGrid) {
+  console.log('updating visuals');
+  // console.log(`Current grid is ${logicalGrid.grid}`);
+  for (let i = 0; i < logicalGrid.length; i += 1) {
+    for (let j = 0; j < logicalGrid.width; j += 1) {
+      visualGrid[i][j].innerHTML = logicalGrid.grid[i][j];
+    }
+  }
+}
 
 export function handleInput(e) {
   const cell = e.target;
+  const coordinate = cell.getAttribute('data-position');
+  console.log(coordinate);
   // depending on the game's state
   // do stuff with the input
+  gamestate = 'playerTurn';
+
+  if (gamestate === 'playerTurn') {
+    console.log(cpuGrid.receiveAttack(JSON.parse(coordinate)));
+    updateVisualGrid(humGridVisual, humGrid);
+    updateVisualGrid(cpuGridVisual, cpuGrid);
+  }
 }
 
 function makeGrid(gridHTML, logicalGrid) {
@@ -54,18 +81,6 @@ function makeGrid(gridHTML, logicalGrid) {
   return visualGrid;
 }
 
-// Updates the visuals like when ships are placed, hit, or sunk
-function updateVisualGrid(visualGrid, logicalGrid) {
-  console.log('updating visuals');
-  console.log(`Current grid is ${logicalGrid.grid}`);
-  for (let i = 0; i < logicalGrid.length; i += 1) {
-    for (let j = 0; j < logicalGrid.width; j += 1) {
-      console.log(visualGrid[i][j]);
-      visualGrid[i][j].innerHTML = logicalGrid.grid[i][j];
-    }
-  }
-}
-
 // Set up a new game
 // Create the gameboard
 // Prompt player for 5 ships
@@ -73,13 +88,13 @@ function updateVisualGrid(visualGrid, logicalGrid) {
 // Start the game loop
 export default function init() {
   let playerHum = Player(8, 8, 'human');
-  const humGrid = playerHum.gameboard;
+  humGrid = playerHum.gameboard;
   playerHum.isTurn = true;
   let playerCPU = Player(8, 8, 'cpu');
-  const cpuGrid = playerCPU.gameboard;
+  cpuGrid = playerCPU.gameboard;
 
-  const humGridVisual = makeGrid(humGridHTML, humGrid);
-  const cpuGridVisual = makeGrid(cpuGridHTML, cpuGrid);
+  humGridVisual = makeGrid(humGridHTML, humGrid);
+  cpuGridVisual = makeGrid(cpuGridHTML, cpuGrid);
 
   // Prompt the player for to make a ship
   // Enter the "Placing a ship" state
