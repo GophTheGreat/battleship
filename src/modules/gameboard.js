@@ -100,7 +100,7 @@ export default function Gameboard(length, width) {
     checkAllDead() {
       let allDead = false;
       let deadCount = 0;
-      let shipCount = this.ships.length;
+      const shipCount = this.ships.length;
       this.ships.forEach((e) => {
         if (e.isSunk()) { deadCount += 1; }
       });

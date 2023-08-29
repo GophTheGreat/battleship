@@ -82,12 +82,17 @@ function makeGrid(gridHTML, logicalGrid) {
   return visualGrid;
 }
 
-// Set up a new game
-// Create the gameboard
-// Prompt player for 5 ships
-// Place 5 ships for the opponent
-// Start the game loop
-export default function init() {
+function deleteChildren(element) {
+  while (element.firstChild) {
+    element.removeChild(element.firstChild);
+  }
+}
+
+function resetGame() {
+  // clear boards
+
+  // begin in "placeship" phase
+
   // Initiate Gameboards
   const playerHum = Player(8, 8, 'human');
   humGrid = playerHum.gameboard;
@@ -98,21 +103,32 @@ export default function init() {
   humGridVisual = makeGrid(humGridHTML, humGrid);
   cpuGridVisual = makeGrid(cpuGridHTML, cpuGrid);
 
-  // Initiate game state
-  gamestate = 'pregame';
-
-  // Prompt player to start
-  // do something to make the player hit a button to start the game
+  // clear start/reset button
+  deleteChildren(document.getElementById('buttonContainer'));
 
   // Initiate placement buttons
-  document.getElementById('verticalButton').addEventListener('click', () => {
+  const buttonContainer = document.getElementById('buttonContainer');
+  const verticalButton = document.createElement('button');
+  const horizontalButton = document.createElement('button');
+
+  verticalButton.id = 'verticalButton';
+  horizontalButton.id = 'horizontalButton';
+  verticalButton.className = 'placementButton';
+  horizontalButton.className = 'placementButton';
+  verticalButton.innerHTML = 'Vertical Placement';
+  horizontalButton.innerHTML = 'Horizontal Placement';
+
+  verticalButton.addEventListener('click', () => {
     shipPlacementOrientation = 'Vertical';
     console.log(shipPlacementOrientation);
   });
-  document.getElementById('horizontalButton').addEventListener('click', () => {
+  buttonContainer.appendChild(verticalButton);
+
+  horizontalButton.addEventListener('click', () => {
     shipPlacementOrientation = 'Horizontal';
     console.log(shipPlacementOrientation);
   });
+  buttonContainer.appendChild(horizontalButton);
 
   // Prompt the player for to make a ship
   // Enter the "Placing a ship" state
@@ -135,12 +151,20 @@ export default function init() {
   // Start the game loop
 }
 
-// function gameloop() {
-//   // const gamestates = ['pregame', 'playerPlaceShip', 'cpuPlaceShip', 'playerTurn', 'cpuTurn', 'playerVictory', 'cpuVictory'];
-//   gamestate = 'playerTurn';
+// Set up a new game
+// Create the gameboard
+// Prompt player for 5 ships
+// Place 5 ships for the opponent
+// Start the game loop
+export default function init() {
+  // Initiate game state
+  gamestate = 'pregame';
 
-//   while (gamestate !== playerVictory || gamestate !== cpuVictory) {
-
-//   }
-//   promptReset();
-// }
+  // Prompt player to start
+  // do something to make the player hit a button to start the game
+  const startButton = document.createElement('button');
+  startButton.innerHTML = 'Start game!';
+  startButton.addEventListener('click', resetGame);
+  const buttonContainer = document.getElementById('buttonContainer');
+  buttonContainer.appendChild(startButton);
+}
