@@ -9,12 +9,13 @@ let cpuGrid;
 let humGridVisual;
 let cpuGridVisual;
 
+let shipPlacementOrientation = 'Vertical';
+
 const humGridHTML = document.getElementById('grid1');
 const cpuGridHTML = document.getElementById('grid2');
 
-
 let gamestate = null;
-const gamestates = ['pregame', 'playerPlaceShip', 'cpuPlaceShip', 'playerTurn', 'cpuTurn', 'playerVictory', 'cpuVictory'];
+// const gamestates = ['pregame', 'playerPlaceShip', 'cpuPlaceShip', 'playerTurn', 'cpuTurn', 'playerVictory', 'cpuVictory'];
 
 // Updates the visuals like when ships are placed, hit, or sunk
 function updateVisualGrid(visualGrid, logicalGrid) {
@@ -87,14 +88,31 @@ function makeGrid(gridHTML, logicalGrid) {
 // Place 5 ships for the opponent
 // Start the game loop
 export default function init() {
-  let playerHum = Player(8, 8, 'human');
+  // Initiate Gameboards
+  const playerHum = Player(8, 8, 'human');
   humGrid = playerHum.gameboard;
   playerHum.isTurn = true;
-  let playerCPU = Player(8, 8, 'cpu');
+  const playerCPU = Player(8, 8, 'cpu');
   cpuGrid = playerCPU.gameboard;
 
   humGridVisual = makeGrid(humGridHTML, humGrid);
   cpuGridVisual = makeGrid(cpuGridHTML, cpuGrid);
+
+  // Initiate game state
+  gamestate = 'pregame';
+
+  // Prompt player to start
+  // do something to make the player hit a button to start the game
+
+  // Initiate placement buttons
+  document.getElementById('verticalButton').addEventListener('click', () => {
+    shipPlacementOrientation = 'Vertical';
+    console.log(shipPlacementOrientation);
+  });
+  document.getElementById('horizontalButton').addEventListener('click', () => {
+    shipPlacementOrientation = 'Horizontal';
+    console.log(shipPlacementOrientation);
+  });
 
   // Prompt the player for to make a ship
   // Enter the "Placing a ship" state
@@ -113,5 +131,16 @@ export default function init() {
 
   updateVisualGrid(humGridVisual, humGrid);
   updateVisualGrid(cpuGridVisual, cpuGrid);
+
+  // Start the game loop
 }
 
+// function gameloop() {
+//   // const gamestates = ['pregame', 'playerPlaceShip', 'cpuPlaceShip', 'playerTurn', 'cpuTurn', 'playerVictory', 'cpuVictory'];
+//   gamestate = 'playerTurn';
+
+//   while (gamestate !== playerVictory || gamestate !== cpuVictory) {
+
+//   }
+//   promptReset();
+// }
