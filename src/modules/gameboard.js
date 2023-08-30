@@ -41,7 +41,7 @@ export default function Gameboard(length, width) {
       }
 
       // Place the ship (horizontal)
-      if (orientation === 'horizontal') {
+      if (orientation === 'Horizontal') {
         for (let i = 0; i < ship.length; i += 1) {
           this.grid[row][column + i] = id;
         }
@@ -55,6 +55,7 @@ export default function Gameboard(length, width) {
     },
 
     checkValidity(position) {
+      // Update me to check if the position overlaps an existing ship
       const column = position[0];
       const row = position[1];
       if (typeof column !== 'number' || typeof row !== 'number') {

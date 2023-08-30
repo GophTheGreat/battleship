@@ -1,11 +1,14 @@
+/* eslint-disable no-loop-func */
 /* eslint-disable no-param-reassign */
 import Gameboard from './gameboard';
 import Ship from './ship';
 import Player from './player';
 
+// Logical grids where all the data is stored
 let humGrid;
 let cpuGrid;
 
+// Visual grids which just reflect the logical grids
 let humGridVisual;
 let cpuGridVisual;
 
@@ -15,6 +18,8 @@ const humGridHTML = document.getElementById('grid1');
 const cpuGridHTML = document.getElementById('grid2');
 
 let gamestate = null;
+let shipLength = 3;
+let shipsRemaining = 5;
 // const gamestates = ['pregame', 'playerPlaceShip', 'cpuPlaceShip', 'playerTurn', 'cpuTurn', 'playerVictory', 'cpuVictory'];
 
 // Updates the visuals like when ships are placed, hit, or sunk
@@ -30,16 +35,107 @@ function updateVisualGrid(visualGrid, logicalGrid) {
 
 export function handleInput(e) {
   const cell = e.target;
-  const coordinate = cell.getAttribute('data-position');
+  const coordinate = JSON.parse(cell.getAttribute('data-position'));
   console.log(coordinate);
   // depending on the game's state
   // do stuff with the input
-  gamestate = 'playerTurn';
+  if (gamestate === 'playerPlaceShip' && cell.getAttribute('data-boardtype') === 'hum') {
+    humGrid.placeShip(Ship(shipLength), coordinate, shipPlacementOrientation);
+    updateVisualGrid(humGridVisual, humGrid);
+  }
 
-  if (gamestate === 'playerTurn') {
+  if (gamestate === 'playerTurn' && cell.getAttribute('data-boardtype') === 'cpu') {
     console.log(cpuGrid.receiveAttack(JSON.parse(coordinate)));
     updateVisualGrid(humGridVisual, humGrid);
     updateVisualGrid(cpuGridVisual, cpuGrid);
+  }
+}
+
+function previewShipHighlightHelperOn(cell) {
+  cell.style.backgroundColor = 'gold';
+}
+
+function previewShipHighlightHelperOff(cell) {
+  cell.style.backgroundColor = 'white';
+}
+
+function previewShip(e) {
+  // First figure out mathematically which cells to draw the preview on
+  // If the preview is invalid, don't draw it
+  // If it's valid draw it
+  const cell = e.target;
+  const coordinate = JSON.parse(cell.getAttribute('data-position'));
+  const row = coordinate[0];
+  const column = coordinate[1];
+  const childID = row * humGrid.length + column;
+  // The following is for calculating spillover
+  // It's just so we can use the same calculation
+  // as the normal childID
+  const childVertCalc = column * humGrid.width + row;
+
+  console.log(`Firing on on ${coordinate}`);
+
+  // Spillover and protection for the preview
+  switch (shipPlacementOrientation) {
+    case 'Horizontal':
+      if ((childID % humGrid.length) + shipLength <= humGrid.length && gamestate === 'playerPlaceShip') {
+        for (let i = 0; i < shipLength; i += 1) {
+          console.log(`${row * humGrid.length + column + i} is on`);
+          const ney = humGridHTML.childNodes[childID + i];
+          previewShipHighlightHelperOn(ney);
+        }
+      }
+      break;
+    case 'Vertical':
+      if ((childVertCalc % humGrid.width) + shipLength <= humGrid.width && gamestate === 'playerPlaceShip') {
+        for (let i = 0; i < shipLength; i += 1) {
+          // console.log(row * humGrid.length);
+          console.log(`${row * i * humGrid.length + column} is on`);
+          const ney = humGridHTML.childNodes[childID + (i * humGrid.width)];
+          previewShipHighlightHelperOn(ney);
+        }
+      }
+      break;
+    default:
+      break;
+  }
+}
+
+function previewShipOff(e) {
+  const cell = e.target;
+  const coordinate = JSON.parse(cell.getAttribute('data-position'));
+  const row = coordinate[0];
+  const column = coordinate[1];
+  const childID = row * humGrid.length + column;
+  // The following is for calculating spillover
+  // It's just so we can use the same calculation
+  // as the normal childID
+  const childVertCalc = column * humGrid.width + row;
+  console.log(`Firing off on ${coordinate}`);
+
+  // Spillover and protection for the preview
+  switch (shipPlacementOrientation) {
+    case 'Horizontal':
+      if ((childID % humGrid.length) + shipLength <= humGrid.length && gamestate === 'playerPlaceShip') {
+        for (let i = 0; i < 3; i += 1) {
+          console.log(`${row * humGrid.length + column + i} is off`);
+          const ney = humGridHTML.childNodes[childID + i];
+          previewShipHighlightHelperOff(ney);
+        }
+      }
+      break;
+    case 'Vertical':
+      if ((childVertCalc % humGrid.width) + shipLength <= humGrid.width && gamestate === 'playerPlaceShip') {
+        for (let i = 0; i < shipLength; i += 1) {
+          // console.log(row * humGrid.length);
+          console.log(`${row * i * humGrid.length + column} is on`);
+          const ney = humGridHTML.childNodes[childID + (i * humGrid.width)];
+          previewShipHighlightHelperOff(ney);
+        }
+      }
+      break;
+    default:
+      break;
   }
 }
 
@@ -59,10 +155,13 @@ function makeGrid(gridHTML, logicalGrid) {
       const cell = visualGrid[i][j];
       cell.style.border = '2px solid darkgrey';
       cell.className = 'cell';
+      cell.setAttribute('data-boardtype', 'cpu');
       cell.setAttribute('data-position', `[${i}, ${j}]`);
       cell.addEventListener('click', handleInput);
+      // cell.addEventListener('mouseover', previewShip);
+      // cell.addEventListener('mouseout', previewShipOff);
       cell.addEventListener('mouseover', (event) => {
-        event.target.style.backgroundColor = 'red';
+        if (gamestate === 'playerTurn') { event.target.style.backgroundColor = 'red'; }
       });
       cell.addEventListener('mouseout', (event) => {
         event.target.style.backgroundColor = 'white';
@@ -82,6 +181,18 @@ function makeGrid(gridHTML, logicalGrid) {
   return visualGrid;
 }
 
+function makePlayerGrid(gridHTML, logicalGrid) {
+  const grid = makeGrid(gridHTML, logicalGrid);
+  grid.forEach((array) => {
+    array.forEach((cell) => {
+      cell.addEventListener('mouseover', previewShip);
+      cell.addEventListener('mouseout', previewShipOff);
+      cell.setAttribute('data-boardtype', 'hum');
+    });
+  });
+  return grid;
+}
+
 function deleteChildren(element) {
   while (element.firstChild) {
     element.removeChild(element.firstChild);
@@ -89,21 +200,18 @@ function deleteChildren(element) {
 }
 
 function resetGame() {
-  // clear boards
+  // THE PLAN
+  // 1. Clear existing gameboards
+  // 2. Reset buttons and other UI elements
+  // 3. Initiate new gameboards
+  // 4. Begin in "placeship" phase
+  // END PLAN
 
-  // begin in "placeship" phase
+  // 1. Clear existing gameboards
+  const grids = Array.from(document.getElementsByClassName('grid'));
+  grids.forEach(deleteChildren);
 
-  // Initiate Gameboards
-  const playerHum = Player(8, 8, 'human');
-  humGrid = playerHum.gameboard;
-  playerHum.isTurn = true;
-  const playerCPU = Player(8, 8, 'cpu');
-  cpuGrid = playerCPU.gameboard;
-
-  humGridVisual = makeGrid(humGridHTML, humGrid);
-  cpuGridVisual = makeGrid(cpuGridHTML, cpuGrid);
-
-  // clear start/reset button
+  // 2. Reset buttons and other UI elements
   deleteChildren(document.getElementById('buttonContainer'));
 
   // Initiate placement buttons
@@ -130,14 +238,21 @@ function resetGame() {
   });
   buttonContainer.appendChild(horizontalButton);
 
+  // 3. Initiate new gameboards
+  const playerHum = Player(8, 8, 'human');
+  humGrid = playerHum.gameboard;
+  playerHum.isTurn = true;
+  const playerCPU = Player(8, 8, 'cpu');
+  cpuGrid = playerCPU.gameboard;
+
+  humGridVisual = makePlayerGrid(humGridHTML, humGrid);
+  cpuGridVisual = makeGrid(cpuGridHTML, cpuGrid);
+
+  // 4. Begin in "placeship" phase
+  gamestate = 'playerPlaceShip';
+  console.log(gamestate);
+
   // Prompt the player for to make a ship
-  // Enter the "Placing a ship" state
-  // Let's just place 5 ships pre-determined
-  humGrid.placeShip(Ship(5), [0, 0], 'vertical');
-  humGrid.placeShip(Ship(4), [2, 2], 'vertical');
-  humGrid.placeShip(Ship(3), [2, 3], 'horizontal');
-  humGrid.placeShip(Ship(3), [3, 3], 'horizontal');
-  humGrid.placeShip(Ship(2), [6, 6], 'horizontal');
 
   cpuGrid.placeShip(Ship(5), [0, 0], 'vertical');
   cpuGrid.placeShip(Ship(4), [0, 1], 'vertical');
