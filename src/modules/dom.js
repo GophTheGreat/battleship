@@ -252,8 +252,8 @@ function resetGame() {
   gamestate = 'playerPlaceShip';
   console.log(gamestate);
 
+  
   // Prompt the player for to make a ship
-
   cpuGrid.placeShip(Ship(5), [0, 0], 'vertical');
   cpuGrid.placeShip(Ship(4), [0, 1], 'vertical');
   cpuGrid.placeShip(Ship(3), [3, 3], 'horizontal');
