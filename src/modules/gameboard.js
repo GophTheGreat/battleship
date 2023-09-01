@@ -18,6 +18,7 @@ export default function Gameboard(length, width) {
     },
 
     placeShip(ship, position, orientation) {
+      console.log(`calling placeship`);
       const row = position[0];
       const column = position[1];
       // Check validity of position
@@ -40,6 +41,7 @@ export default function Gameboard(length, width) {
         id = 0;
       }
 
+      console.log('placing the ship');
       // Place the ship (horizontal)
       if (orientation === 'Horizontal') {
         for (let i = 0; i < ship.length; i += 1) {
@@ -51,6 +53,8 @@ export default function Gameboard(length, width) {
           this.grid[row + i][column] = id;
         }
       }
+      console.log('ship placed');
+      console.log(this.grid);
       return '';
     },
 
