@@ -51,14 +51,6 @@ export function handleInput(e) {
   }
 }
 
-function previewShipHighlightHelperOn(cell) {
-  cell.style.backgroundColor = 'gold';
-}
-
-function previewShipHighlightHelperOff(cell) {
-  cell.style.backgroundColor = 'white';
-}
-
 function previewShip(e) {
   // First figure out mathematically which cells to draw the preview on
   // If the preview is invalid, don't draw it
@@ -73,16 +65,16 @@ function previewShip(e) {
   // as the normal childID
   const childVertCalc = column * humGrid.width + row;
 
-  console.log(`Firing on on ${coordinate}`);
+  //console.log(`Firing on on ${coordinate}`);
 
   // Spillover and protection for the preview
   switch (shipPlacementOrientation) {
     case 'Horizontal':
       if ((childID % humGrid.length) + shipLength <= humGrid.length && gamestate === 'playerPlaceShip') {
         for (let i = 0; i < shipLength; i += 1) {
-          console.log(`${row * humGrid.length + column + i} is on`);
+          //console.log(`${row * humGrid.length + column + i} is on`);
           const ney = humGridHTML.childNodes[childID + i];
-          previewShipHighlightHelperOn(ney);
+          ney.classList.add('previewShip');
         }
       }
       break;
@@ -92,7 +84,7 @@ function previewShip(e) {
           // console.log(row * humGrid.length);
           console.log(`${row * i * humGrid.length + column} is on`);
           const ney = humGridHTML.childNodes[childID + (i * humGrid.width)];
-          previewShipHighlightHelperOn(ney);
+          ney.classList.add('previewShip');
         }
       }
       break;
@@ -111,26 +103,25 @@ function previewShipOff(e) {
   // It's just so we can use the same calculation
   // as the normal childID
   const childVertCalc = column * humGrid.width + row;
-  console.log(`Firing off on ${coordinate}`);
+  //console.log(`Firing off on ${coordinate}`);
 
   // Spillover and protection for the preview
   switch (shipPlacementOrientation) {
     case 'Horizontal':
       if ((childID % humGrid.length) + shipLength <= humGrid.length && gamestate === 'playerPlaceShip') {
         for (let i = 0; i < 3; i += 1) {
-          console.log(`${row * humGrid.length + column + i} is off`);
+          //console.log(`${row * humGrid.length + column + i} is off`);
           const ney = humGridHTML.childNodes[childID + i];
-          previewShipHighlightHelperOff(ney);
+          ney.classList.remove('previewShip');
         }
       }
       break;
     case 'Vertical':
       if ((childVertCalc % humGrid.width) + shipLength <= humGrid.width && gamestate === 'playerPlaceShip') {
         for (let i = 0; i < shipLength; i += 1) {
-          // console.log(row * humGrid.length);
-          console.log(`${row * i * humGrid.length + column} is on`);
+          //console.log(`${row * i * humGrid.length + column} is off`);
           const ney = humGridHTML.childNodes[childID + (i * humGrid.width)];
-          previewShipHighlightHelperOff(ney);
+          ney.classList.remove('previewShip');
         }
       }
       break;
@@ -162,9 +153,6 @@ function makeGrid(gridHTML, logicalGrid) {
       // cell.addEventListener('mouseout', previewShipOff);
       cell.addEventListener('mouseover', (event) => {
         if (gamestate === 'playerTurn') { event.target.style.backgroundColor = 'red'; }
-      });
-      cell.addEventListener('mouseout', (event) => {
-        event.target.style.backgroundColor = 'white';
       });
       gridHTML.appendChild(cell);
       // set up the cells to listen for input

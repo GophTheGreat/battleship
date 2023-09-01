@@ -21,7 +21,7 @@ export default function Gameboard(length, width) {
       const row = position[0];
       const column = position[1];
       // Check validity of position
-      if (this.checkValidity(position) === 'Invalid position') {
+      if (this.checkValidity(position, ship.length, orientation) === 'Invalid position') {
         return 'Invalid position';
       }
 
@@ -54,18 +54,42 @@ export default function Gameboard(length, width) {
       return '';
     },
 
-    checkValidity(position) {
+    checkValidity(position, shipLength, orientation) {
       // Update me to check if the position overlaps an existing ship
-      const column = position[0];
-      const row = position[1];
+      const row = position[0];
+      const column = position[1];
+      console.log(`ckechvalid on ${row},${column}`);
+      // Sanity checks
       if (typeof column !== 'number' || typeof row !== 'number') {
         return 'Invalid position';
       }
       if (column < 0 || row < 0) {
         return 'Invalid position';
       }
-      if (column > this.length || row > this.width) {
+      if (column > this.length - 1 || row > this.width - 1) {
         return 'Invalid position';
+      }
+
+      // Horizontal check
+      if (orientation === 'Horizontal') {
+        for (let i = 0; i < shipLength; i += 1) {
+          if (column + i > this.length - 1) {
+            console.log('invalid h');
+            return 'Invalid position';
+          }
+        }
+      }
+
+      // Vertical check
+      if (orientation === 'Vertical') {
+        for (let i = 0; i < shipLength; i += 1) {
+          console.log(row + i);
+          console.log(this.width - 1);
+          if (row + i > this.width - 1) {
+            console.log('invalid v');
+            return 'Invalid position';
+          }
+        }
       }
       return '';
     },

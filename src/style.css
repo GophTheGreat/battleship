@@ -30,6 +30,10 @@ body{
   align-items: center;
 }
 
+.previewShip {
+  background-color: gold;
+}
+
 #footer {
   width: 100%;
   background-color: black;
