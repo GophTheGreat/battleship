@@ -115,9 +115,6 @@ export default function Gameboard(length, width) {
     },
 
     receiveAttack(position) {
-      if (this.checkValidity(position) === 'Invalid position') {
-        return 'Invalid position';
-      }
       const column = position[0];
       const row = position[1];
       const loc = this.grid[column][row];
@@ -152,6 +149,7 @@ export default function Gameboard(length, width) {
       if (deadCount === shipCount) {
         allDead = true;
       }
+      console.log(`Dead count = ${deadCount}`);
       return allDead;
     },
   };

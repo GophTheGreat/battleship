@@ -1,9 +1,9 @@
+/* eslint-disable import/no-mutable-exports */
 /* eslint-disable no-loop-func */
 /* eslint-disable no-param-reassign */
-import Gameboard from './gameboard';
-import Ship from './ship';
+import Gamestate from './gamestate';
 import Player from './player';
-import glPlaceShip, { createShips, humShips } from './gameloop_place_ships';
+import { glPlaceShip, createShips, humShips } from './gameloop_place_ships';
 
 // Logical grids where all the data is stored
 let humGrid;
@@ -21,7 +21,6 @@ const cpuGridHTML = document.getElementById('grid2');
 const previewCells = [];
 
 let gamestate = null;
-// const gamestates = ['pregame', 'playerPlaceShip', 'cpuPlaceShip', 'playerTurn', 'cpuTurn', 'playerVictory', 'cpuVictory'];
 
 // Updates the visuals like when ships are placed, hit, or sunk
 export function updateVisualGrid(visualGrid, logicalGrid) {
@@ -41,20 +40,38 @@ export function handleInput(e) {
   console.log(coordinate);
   // depending on the game's state
   // do stuff with the input
-  if (gamestate === 'playerPlaceShip' && boardType === 'hum') {
-    glPlaceShip(humGrid, coordinate, shipPlacementOrientation, boardType);
+  if (gamestate.state === 'playerPlaceShip' && boardType === 'hum') {
+    glPlaceShip(humGrid, coordinate, shipPlacementOrientation, boardType, gamestate);
     updateVisualGrid(humGridVisual, humGrid);
   }
 
-  if (gamestate === 'playerTurn' && boardType === 'cpu') {
-    console.log(cpuGrid.receiveAttack(JSON.parse(coordinate)));
+  if (gamestate.state === 'playerTurn' && boardType === 'cpu') {
+    console.log(cpuGrid.receiveAttack(coordinate));
     updateVisualGrid(humGridVisual, humGrid);
     updateVisualGrid(cpuGridVisual, cpuGrid);
   }
 }
 
+function previewAttack(e) {
+  const cell = e.target;
+  const coordinate = JSON.parse(cell.getAttribute('data-position'));
+  const row = coordinate[0];
+  const column = coordinate[1];
+  const childID = row * humGrid.length + column;
+  const cellHTML = cpuGridHTML.childNodes[childID];
+
+  previewCells.push(cellHTML);
+  cellHTML.classList.add('previewAttack');
+}
+
+function previewAttackOff() {
+  while (previewCells.length > 0) {
+    previewCells.pop().classList.remove('previewAttack');
+  }
+}
+
 function previewShip(e) {
-  if (gamestate === 'playerPlaceShip') {
+  if (gamestate.state === 'playerPlaceShip') {
     const shipLength = humShips[humShips.length - 1].length;
     console.log(shipLength);
     // First figure out mathematically which cells to draw the preview on
@@ -74,7 +91,7 @@ function previewShip(e) {
     // Spillover and protection for the preview
     switch (shipPlacementOrientation) {
       case 'Horizontal':
-        if ((childID % humGrid.length) + shipLength <= humGrid.length && gamestate === 'playerPlaceShip') {
+        if ((childID % humGrid.length) + shipLength <= humGrid.length && gamestate.state === 'playerPlaceShip') {
           for (let i = 0; i < shipLength; i += 1) {
             // console.log(`${row * humGrid.length + column + i} is on`);
             previewCells.push(humGridHTML.childNodes[childID + i]);
@@ -84,7 +101,7 @@ function previewShip(e) {
         }
         break;
       case 'Vertical':
-        if ((childVertCalc % humGrid.width) + shipLength <= humGrid.width && gamestate === 'playerPlaceShip') {
+        if ((childVertCalc % humGrid.width) + shipLength <= humGrid.width && gamestate.state === 'playerPlaceShip') {
           for (let i = 0; i < shipLength; i += 1) {
             // console.log(`${row * i * humGrid.length + column} is on`);
             previewCells.push(humGridHTML.childNodes[childID + i * humGrid.width]);
@@ -104,44 +121,6 @@ function previewShipOff() {
     previewCells.pop().classList.remove('previewShip');
   }
 }
-
-// function previewShipOff(e) {
-//   const shipLength = humShips[humShips.length - 1].length;
-//   const cell = e.target;
-//   const coordinate = JSON.parse(cell.getAttribute('data-position'));
-//   const row = coordinate[0];
-//   const column = coordinate[1];
-//   const childID = row * humGrid.length + column;
-//   // The following is for calculating spillover
-//   // It's just so we can use the same calculation
-//   // as the normal childID
-//   const childVertCalc = column * humGrid.width + row;
-//   // console.log(`Firing off on ${coordinate}`);
-
-//   // Spillover and protection for the preview
-//   switch (shipPlacementOrientation) {
-//     case 'Horizontal':
-//       if ((childID % humGrid.length) + shipLength <= humGrid.length && gamestate === 'playerPlaceShip') {
-//         for (let i = 0; i < shipLength; i += 1) {
-//           // console.log(`${row * humGrid.length + column + i} is off`);
-//           const ney = humGridHTML.childNodes[childID + i];
-//           ney.classList.remove('previewShip');
-//         }
-//       }
-//       break;
-//     case 'Vertical':
-//       if ((childVertCalc % humGrid.width) + shipLength <= humGrid.width && gamestate === 'playerPlaceShip') {
-//         for (let i = 0; i < shipLength; i += 1) {
-//           // console.log(`${row * i * humGrid.length + column} is off`);
-//           const ney = humGridHTML.childNodes[childID + (i * humGrid.width)];
-//           ney.classList.remove('previewShip');
-//         }
-//       }
-//       break;
-//     default:
-//       break;
-//   }
-// }
 
 function makeGrid(gridHTML, logicalGrid) {
   const visualGrid = [];
@@ -164,9 +143,6 @@ function makeGrid(gridHTML, logicalGrid) {
       cell.addEventListener('click', handleInput);
       // cell.addEventListener('mouseover', previewShip);
       // cell.addEventListener('mouseout', previewShipOff);
-      cell.addEventListener('mouseover', (event) => {
-        if (gamestate === 'playerTurn') { event.target.style.backgroundColor = 'red'; }
-      });
       gridHTML.appendChild(cell);
       // set up the cells to listen for input
       // cell.addEventListener('click', setPos);
@@ -180,6 +156,18 @@ function makeGrid(gridHTML, logicalGrid) {
   gridHTML.style.height = `${logicalGrid.width * (cellWidth + 2 * 2)}px`;
   console.log(visualGrid);
   return visualGrid;
+}
+
+function makeCPUGrid(gridHTML, logicalGrid) {
+  const grid = makeGrid(gridHTML, logicalGrid);
+  grid.forEach((array) => {
+    array.forEach((cell) => {
+      cell.addEventListener('mouseover', previewAttack);
+      cell.addEventListener('mouseout', previewAttackOff);
+      cell.setAttribute('data-boardtype', 'cpu');
+    });
+  });
+  return grid;
 }
 
 function makePlayerGrid(gridHTML, logicalGrid) {
@@ -244,27 +232,22 @@ function resetGame() {
   // 2. Reset buttons and other UI elements
   resetUI();
 
-  // 3. Initiate new gameboards
+  // 3. Initiate new gameboards and gamestate
+  gamestate = Gamestate();
   const playerHum = Player(8, 8, 'human');
   humGrid = playerHum.gameboard;
   playerHum.isTurn = true;
   const playerCPU = Player(8, 8, 'cpu');
+
   cpuGrid = playerCPU.gameboard;
 
   humGridVisual = makePlayerGrid(humGridHTML, humGrid);
-  cpuGridVisual = makeGrid(cpuGridHTML, cpuGrid);
+  cpuGridVisual = makeCPUGrid(cpuGridHTML, cpuGrid);
 
   // 4. Begin in "placeship" phase
-  gamestate = 'playerPlaceShip';
+  gamestate.set('playerPlaceShip');
   createShips();
-  console.log(gamestate);
-
-  // Prompt the player for to make a ship
-  cpuGrid.placeShip(Ship(5), [0, 0], 'vertical');
-  cpuGrid.placeShip(Ship(4), [0, 1], 'vertical');
-  cpuGrid.placeShip(Ship(3), [3, 3], 'horizontal');
-  cpuGrid.placeShip(Ship(3), [2, 3], 'horizontal');
-  cpuGrid.placeShip(Ship(2), [6, 6], 'horizontal');
+  console.log(gamestate.state);
 
   updateVisualGrid(humGridVisual, humGrid);
   updateVisualGrid(cpuGridVisual, cpuGrid);
@@ -276,9 +259,6 @@ function resetGame() {
 // Place 5 ships for the opponent
 // Start the game loop
 export default function init() {
-  // Initiate game state
-  gamestate = 'pregame';
-
   // Prompt player to start
   // do something to make the player hit a button to start the game
   const startButton = document.createElement('button');
@@ -287,3 +267,7 @@ export default function init() {
   const buttonContainer = document.getElementById('buttonContainer');
   buttonContainer.appendChild(startButton);
 }
+
+export {
+  humGrid, cpuGrid, humGridVisual, cpuGridVisual, humGridHTML, cpuGridHTML, gamestate,
+};
