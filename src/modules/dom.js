@@ -4,6 +4,7 @@
 import Gamestate from './gamestate';
 import Player from './player';
 import { glPlaceShip, createShips, humShips } from './gameloop_place_ships';
+import { cpuTakeTurn } from './cpu_actions';
 
 // Logical grids where all the data is stored
 let humGrid;
@@ -47,6 +48,8 @@ export function handleInput(e) {
 
   if (gamestate.state === 'playerTurn' && boardType === 'cpu') {
     console.log(cpuGrid.receiveAttack(coordinate));
+    gamestate.set('cpuTurn');
+    cpuTakeTurn();
     updateVisualGrid(humGridVisual, humGrid);
     updateVisualGrid(cpuGridVisual, cpuGrid);
   }

@@ -2,8 +2,9 @@
 import { glPlaceShip } from './gameloop_place_ships';
 
 import {
-  cpuGrid, cpuGridVisual, gamestate, updateVisualGrid,
+  cpuGrid, cpuGridVisual, gamestate, humGrid, humGridVisual, updateVisualGrid,
 } from './dom';
+import Player from './player';
 
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
@@ -30,9 +31,18 @@ export function cpuPlaceShips() {
     status = glPlaceShip(cpuGrid, coordinate, orientation, 'cpu', gamestate);
     console.log(status);
   }
+  gamestate.set('playerTurn');
   updateVisualGrid(cpuGridVisual, cpuGrid);
 }
 
-// export function cpuTakeTurn() {
-
-// }
+export function cpuTakeTurn() {
+  let status = 'Invalid Attack';
+  const row = getRandomInt(cpuGrid.length);
+  const column = getRandomInt(cpuGrid.width);
+  const coordinate = [row, column];
+  while (status === 'Invalid Attack') {
+    status = humGrid.receiveAttack(coordinate);
+  }
+  gamestate.set('playerTurn');
+  updateVisualGrid(humGridVisual, humGrid);
+}

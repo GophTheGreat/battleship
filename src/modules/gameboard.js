@@ -18,7 +18,7 @@ export default function Gameboard(length, width) {
     },
 
     placeShip(ship, position, orientation) {
-      console.log(`calling placeship`);
+      console.log('calling placeship');
       const row = position[0];
       const column = position[1];
       // Check validity of position
