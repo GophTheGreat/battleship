@@ -1,7 +1,7 @@
 /* eslint-disable import/no-mutable-exports */
 /* eslint-disable no-loop-func */
 /* eslint-disable no-param-reassign */
-import Gamestate from './gamestate';
+import Game from './game';
 import Player from './player';
 import { glPlaceShip, createShips, humShips } from './gameloop_place_ships';
 import { cpuTakeTurn } from './cpu_actions';
@@ -21,17 +21,22 @@ const cpuGridHTML = document.getElementById('grid2');
 
 const previewCells = [];
 
-let gamestate = null;
+let game;
 
 // Updates the visuals like when ships are placed, hit, or sunk
 export function updateVisualGrid(visualGrid, logicalGrid) {
-  console.log('updating visuals');
   // console.log(`Current grid is ${logicalGrid.grid}`);
   for (let i = 0; i < logicalGrid.length; i += 1) {
     for (let j = 0; j < logicalGrid.width; j += 1) {
       visualGrid[i][j].innerHTML = logicalGrid.grid[i][j];
     }
   }
+}
+
+// Calls updateVisualGrid on both grids as shorthand
+export function updateUI() {
+  updateVisualGrid(humGridVisual, humGrid);
+  updateVisualGrid(cpuGridVisual, cpuGrid);
 }
 
 export function handleInput(e) {
@@ -41,21 +46,41 @@ export function handleInput(e) {
   console.log(coordinate);
   // depending on the game's state
   // do stuff with the input
-  if (gamestate.state === 'playerPlaceShip' && boardType === 'hum') {
-    glPlaceShip(humGrid, coordinate, shipPlacementOrientation, boardType, gamestate);
-    updateVisualGrid(humGridVisual, humGrid);
+  if (game.state === 'playerPlaceShip' && boardType === 'hum') {
+    glPlaceShip(humGrid, coordinate, shipPlacementOrientation, boardType);
+    game.advance();
   }
 
-  if (gamestate.state === 'playerTurn' && boardType === 'cpu') {
-    console.log(cpuGrid.receiveAttack(coordinate));
-    gamestate.set('cpuTurn');
-    cpuTakeTurn();
-    updateVisualGrid(humGridVisual, humGrid);
-    updateVisualGrid(cpuGridVisual, cpuGrid);
+  if (game.state === 'playerTurn' && boardType === 'cpu') {
+    const result = cpuGrid.receiveAttack(coordinate);
+    console.log(result);
+    if (result === 'Invalid attack') {
+      return;
+    }
+    updateUI();
+    game.advance();
   }
 }
 
-function previewAttack(e) {
+export function uiAddListener(functionMouseOver, functionMouseOut, visualGrid) {
+  visualGrid.forEach((array) => {
+    array.forEach((cell) => {
+      cell.addEventListener('mouseover', functionMouseOver);
+      cell.addEventListener('mouseout', functionMouseOut);
+    });
+  });
+}
+
+export function uiRemoveListener(functionMouseOver, functionMouseOut, visualGrid) {
+  visualGrid.forEach((array) => {
+    array.forEach((cell) => {
+      cell.removeEventListener('mouseover', functionMouseOver);
+      cell.removeEventListener('mouseout', functionMouseOut);
+    });
+  });
+}
+
+export function previewAttack(e) {
   const cell = e.target;
   const coordinate = JSON.parse(cell.getAttribute('data-position'));
   const row = coordinate[0];
@@ -67,59 +92,58 @@ function previewAttack(e) {
   cellHTML.classList.add('previewAttack');
 }
 
-function previewAttackOff() {
+export function previewAttackOff() {
   while (previewCells.length > 0) {
     previewCells.pop().classList.remove('previewAttack');
   }
 }
 
-function previewShip(e) {
-  if (gamestate.state === 'playerPlaceShip') {
-    const shipLength = humShips[humShips.length - 1].length;
-    console.log(shipLength);
-    // First figure out mathematically which cells to draw the preview on
-    // If the preview is invalid, don't draw it
-    // If it's valid draw it
-    const cell = e.target;
-    const coordinate = JSON.parse(cell.getAttribute('data-position'));
-    const row = coordinate[0];
-    const column = coordinate[1];
-    const childID = row * humGrid.length + column;
-    // The following is for calculating spillover
-    // It's just so we can use the same calculation
-    // as the normal childID
-    const childVertCalc = column * humGrid.width + row;
-    // console.log(`Firing on on ${coordinate}`);
+export function previewShip(e) {
+  const shipLength = humShips[humShips.length - 1].length;
+  console.log(shipLength);
+  // First figure out mathematically which cells to draw the preview on
+  // If the preview is invalid, don't draw it
+  // If it's valid draw it
+  const cell = e.target;
+  const coordinate = JSON.parse(cell.getAttribute('data-position'));
+  const row = coordinate[0];
+  const column = coordinate[1];
+  const childID = row * humGrid.length + column;
+  // The following is for calculating spillover
+  // It's just so we can use the same calculation
+  // as the normal childID
+  const childVertCalc = column * humGrid.width + row;
+  // console.log(`Firing on on ${coordinate}`);
 
-    // Spillover and protection for the preview
-    switch (shipPlacementOrientation) {
-      case 'Horizontal':
-        if ((childID % humGrid.length) + shipLength <= humGrid.length && gamestate.state === 'playerPlaceShip') {
-          for (let i = 0; i < shipLength; i += 1) {
-            // console.log(`${row * humGrid.length + column + i} is on`);
-            previewCells.push(humGridHTML.childNodes[childID + i]);
-            const ney = humGridHTML.childNodes[childID + i];
-            ney.classList.add('previewShip');
-          }
+  // Spillover and protection for the preview
+  switch (shipPlacementOrientation) {
+    case 'Horizontal':
+      if ((childID % humGrid.length) + shipLength <= humGrid.length) {
+        for (let i = 0; i < shipLength; i += 1) {
+          // console.log(`${row * humGrid.length + column + i} is on`);
+          previewCells.push(humGridHTML.childNodes[childID + i]);
+          const ney = humGridHTML.childNodes[childID + i];
+          ney.classList.add('previewShip');
         }
-        break;
-      case 'Vertical':
-        if ((childVertCalc % humGrid.width) + shipLength <= humGrid.width && gamestate.state === 'playerPlaceShip') {
-          for (let i = 0; i < shipLength; i += 1) {
-            // console.log(`${row * i * humGrid.length + column} is on`);
-            previewCells.push(humGridHTML.childNodes[childID + i * humGrid.width]);
-            const ney = humGridHTML.childNodes[childID + (i * humGrid.width)];
-            ney.classList.add('previewShip');
-          }
+      }
+      break;
+    case 'Vertical':
+      if ((childVertCalc % humGrid.width) + shipLength <= humGrid.width) {
+        for (let i = 0; i < shipLength; i += 1) {
+          // console.log(`${row * i * humGrid.length + column} is on`);
+          previewCells.push(humGridHTML.childNodes[childID + i * humGrid.width]);
+          const ney = humGridHTML.childNodes[childID + (i * humGrid.width)];
+          ney.classList.add('previewShip');
         }
-        break;
-      default:
-        break;
-    }
+      }
+      break;
+    default:
+      break;
   }
 }
 
-function previewShipOff() {
+export function previewShipOff() {
+  console.log('disabling previewship');
   while (previewCells.length > 0) {
     previewCells.pop().classList.remove('previewShip');
   }
@@ -177,8 +201,6 @@ function makePlayerGrid(gridHTML, logicalGrid) {
   const grid = makeGrid(gridHTML, logicalGrid);
   grid.forEach((array) => {
     array.forEach((cell) => {
-      cell.addEventListener('mouseover', previewShip);
-      cell.addEventListener('mouseout', previewShipOff);
       cell.setAttribute('data-boardtype', 'hum');
     });
   });
@@ -220,6 +242,7 @@ export function resetUI() {
   buttonContainer.appendChild(horizontalButton);
 }
 
+
 function resetGame() {
   // THE PLAN
   // 1. Clear existing gameboards
@@ -235,25 +258,21 @@ function resetGame() {
   // 2. Reset buttons and other UI elements
   resetUI();
 
-  // 3. Initiate new gameboards and gamestate
-  gamestate = Gamestate();
+  // 3. Initiate new gameboards and game object
   const playerHum = Player(8, 8, 'human');
   humGrid = playerHum.gameboard;
   playerHum.isTurn = true;
   const playerCPU = Player(8, 8, 'cpu');
-
   cpuGrid = playerCPU.gameboard;
 
   humGridVisual = makePlayerGrid(humGridHTML, humGrid);
   cpuGridVisual = makeCPUGrid(cpuGridHTML, cpuGrid);
 
-  // 4. Begin in "placeship" phase
-  gamestate.set('playerPlaceShip');
-  createShips();
-  console.log(gamestate.state);
+  game = Game(humGrid, humGridVisual, cpuGrid, cpuGridVisual);
 
-  updateVisualGrid(humGridVisual, humGrid);
-  updateVisualGrid(cpuGridVisual, cpuGrid);
+  createShips();
+
+  game.advance();
 }
 
 // Set up a new game
@@ -272,5 +291,5 @@ export default function init() {
 }
 
 export {
-  humGrid, cpuGrid, humGridVisual, cpuGridVisual, humGridHTML, cpuGridHTML, gamestate,
+  humGrid, cpuGrid, humGridVisual, cpuGridVisual, humGridHTML, cpuGridHTML,
 };

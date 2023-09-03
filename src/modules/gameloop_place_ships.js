@@ -4,7 +4,7 @@ import { cpuPlaceShips } from './cpu_actions';
 const humShips = [];
 const cpuShips = [];
 
-export function glPlaceShip(grid, coordinate, shipPlacementOrientation, boardType, gamestate) {
+export function glPlaceShip(grid, coordinate, shipPlacementOrientation, boardType) {
   console.log('calling glplaceship');
   let ships;
   if (boardType === 'hum') {
@@ -12,6 +12,7 @@ export function glPlaceShip(grid, coordinate, shipPlacementOrientation, boardTyp
   } else {
     ships = cpuShips;
   }
+  console.log(ships);
   const curShip = ships[ships.length - 1];
   const shipPlaced = grid.placeShip(curShip, coordinate, shipPlacementOrientation);
   if (shipPlaced === '') {
@@ -19,21 +20,7 @@ export function glPlaceShip(grid, coordinate, shipPlacementOrientation, boardTyp
   } else {
     return 'glplaceship error';
   }
-
-  console.log(ships);
-  // If the player is out of ships to place
-  // return 'done'
-  if (ships.length === 0) {
-    if (gamestate.state !== 'cpuPlaceShip') {
-      gamestate.set('cpuPlaceShip');
-      cpuPlaceShips();
-    } else {
-      gamestate.set('playerTurn');
-      return 'done';
-    }
-    console.log(gamestate.state);
-  }
-  return '';
+  return 'done';
 }
 
 export function createShips() {

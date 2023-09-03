@@ -2,15 +2,15 @@
 import { glPlaceShip } from './gameloop_place_ships';
 
 import {
-  cpuGrid, cpuGridVisual, gamestate, humGrid, humGridVisual, updateVisualGrid,
+  cpuGrid, humGrid,
 } from './dom';
-import Player from './player';
 
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
 
-export function cpuPlaceShips() {
+export function cpuPlaceShip() {
+  console.log('placing CPU ship');
   let status = '';
   while (status !== 'done') {
     const row = getRandomInt(cpuGrid.length);
@@ -28,21 +28,20 @@ export function cpuPlaceShips() {
         orientation = 'Vertical';
         break;
     }
-    status = glPlaceShip(cpuGrid, coordinate, orientation, 'cpu', gamestate);
+    status = glPlaceShip(cpuGrid, coordinate, orientation, 'cpu');
     console.log(status);
   }
-  gamestate.set('playerTurn');
-  updateVisualGrid(cpuGridVisual, cpuGrid);
 }
 
 export function cpuTakeTurn() {
-  let status = 'Invalid Attack';
-  const row = getRandomInt(cpuGrid.length);
-  const column = getRandomInt(cpuGrid.width);
-  const coordinate = [row, column];
-  while (status === 'Invalid Attack') {
+  let status = 'Invalid attack';
+  let row = getRandomInt(cpuGrid.length);
+  let column = getRandomInt(cpuGrid.width);
+  let coordinate = [row, column];
+  while (status === 'Invalid attack') {
+    row = getRandomInt(cpuGrid.length);
+    column = getRandomInt(cpuGrid.width);
+    coordinate = [row, column];
     status = humGrid.receiveAttack(coordinate);
   }
-  gamestate.set('playerTurn');
-  updateVisualGrid(humGridVisual, humGrid);
 }
