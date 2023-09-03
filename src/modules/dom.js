@@ -24,19 +24,29 @@ const previewCells = [];
 let game;
 
 // Updates the visuals like when ships are placed, hit, or sunk
-export function updateVisualGrid(visualGrid, logicalGrid) {
-  // console.log(`Current grid is ${logicalGrid.grid}`);
-  for (let i = 0; i < logicalGrid.length; i += 1) {
-    for (let j = 0; j < logicalGrid.width; j += 1) {
-      visualGrid[i][j].innerHTML = logicalGrid.grid[i][j];
+export function updateVisualGrid(visualGrid, logicalGrid, humanOrCPU) {
+  const numberPattern = /^[0-9]+$/;
+  if (humanOrCPU === 'cpu' && game.state !== 'cpuVictory' && game.state !== 'playerVictory') {
+    for (let i = 0; i < logicalGrid.length; i += 1) {
+      for (let j = 0; j < logicalGrid.width; j += 1) {
+        if (!numberPattern.test(logicalGrid.grid[i][j])) {
+          visualGrid[i][j].innerHTML = logicalGrid.grid[i][j];
+        }
+      }
+    }
+  } else {
+    for (let i = 0; i < logicalGrid.length; i += 1) {
+      for (let j = 0; j < logicalGrid.width; j += 1) {
+        visualGrid[i][j].innerHTML = logicalGrid.grid[i][j];
+      }
     }
   }
 }
 
 // Calls updateVisualGrid on both grids as shorthand
 export function updateUI() {
-  updateVisualGrid(humGridVisual, humGrid);
-  updateVisualGrid(cpuGridVisual, cpuGrid);
+  updateVisualGrid(humGridVisual, humGrid, 'hum');
+  updateVisualGrid(cpuGridVisual, cpuGrid, 'cpu');
 }
 
 export function handleInput(e) {
@@ -241,7 +251,6 @@ export function resetUI() {
   });
   buttonContainer.appendChild(horizontalButton);
 }
-
 
 function resetGame() {
   // THE PLAN
